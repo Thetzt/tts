@@ -1,4 +1,3 @@
-python-telegram-bot
-edge-tts
-nest_asyncio
 flask
+edge-tts
+gunicorn
