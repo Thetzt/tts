@@ -104,7 +104,6 @@
         }
 
         .form-group { margin-bottom: 5px; }
-        .full-width { grid-column: span 2; }
 
         label {
             display: block;
@@ -113,7 +112,7 @@
             font-size: 13px;
         }
         
-        select, input[type="number"] {
+        select {
             width: 100%;
             padding: 10px;
             border: 1px solid var(--border-color);
@@ -122,9 +121,6 @@
             color: var(--text-color);
             box-sizing: border-box;
         }
-
-        /* Custom Input Hidden by default */
-        .custom-input { display: none; margin-top: 5px; }
 
         .btn-generate {
             width: 100%;
@@ -193,42 +189,39 @@
                 <div class="form-group">
                     <label>Voice Gender</label>
                     <select name="voice" id="voiceSelect">
-                        <option value="male">Male</option>
+                        <option value="male" selected>Male</option>
                         <option value="female">Female</option>
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label>Speed</label>
-                    <select id="speedSelect" onchange="checkCustom('speed')">
-                        <option value="0.5">0.5x</option>
-                        <option value="0.8">0.8x</option>
-                        <option value="0.9">0.9x</option>
-                        <option value="1.0">1.0x (Normal)</option>
-                        <option value="1.05">1.05x</option>
-                        <option value="1.15" selected>1.15x (Recap)</option>
-                        <option value="1.2">1.2x</option>
-                        <option value="1.25">1.25x</option>
-                        <option value="1.5">1.5x</option>
-                        <option value="custom">Custom...</option>
+                    <select id="speedSelect" name="speed">
+                        <option value="0.5">0.5</option>
+                        <option value="0.8">0.8</option>
+                        <option value="0.9">0.9</option>
+                        <option value="1.0" selected>1.0</option>
+                        <option value="1.05">1.05</option>
+                        <option value="1.15">1.15</option>
+                        <option value="1.2">1.2</option>
+                        <option value="1.25">1.25</option>
+                        <option value="1.5">1.5</option>
                     </select>
-                    <input type="number" step="0.01" id="speedCustom" name="speed" class="custom-input" placeholder="Enter value (e.g. 1.3)" value="1.15">
                 </div>
 
                 <div class="form-group">
-                    <label>Pitch (Hz)</label>
+                    <label>Pitch</label>
                     <select name="pitch" id="pitchSelect">
-                        <option value="+0Hz">Default (0)</option>
+                        <option value="-25Hz">-25</option>
+                        <option value="-15Hz">-15</option>
+                        <option value="-10Hz">-10</option>
+                        <option value="-5Hz">-5</option>
+                        <option value="+0Hz" selected>0</option>
                         <option value="+5Hz">5</option>
                         <option value="+10Hz">10</option>
                         <option value="+15Hz">15</option>
                         <option value="+25Hz">25</option>
                         <option value="+50Hz">50</option>
-                        <option value="-5Hz">-5</option>
-                        <option value="-10Hz">-10</option>
-                        <option value="-15Hz">-15</option>
-                        <option value="-25Hz">-25</option>
-                        <option value="-50Hz">-50</option>
                     </select>
                 </div>
 
@@ -238,7 +231,7 @@
                         <option value="10">10</option>
                         <option value="30">30</option>
                         <option value="80">80</option>
-                        <option value="100" selected>100 (Default)</option>
+                        <option value="100" selected>100</option>
                         <option value="120">120</option>
                         <option value="150">150</option>
                         <option value="180">180</option>
@@ -250,12 +243,12 @@
                 <div class="form-group">
                     <label>Pause (ms)</label>
                     <select name="pause" id="pauseSelect">
-                        <option value="0">None</option>
-                        <option value="100">100 ms</option>
-                        <option value="200">200 ms</option>
-                        <option value="300" selected>300 ms</option>
-                        <option value="400">400 ms</option>
-                        <option value="500">500 ms</option>
+                        <option value="0">0</option>
+                        <option value="100">100</option>
+                        <option value="200">200</option>
+                        <option value="300" selected>300</option>
+                        <option value="400">400</option>
+                        <option value="500">500</option>
                     </select>
                 </div>
             </div>
@@ -267,22 +260,6 @@
     </div>
 
     <script>
-        // --- Custom Speed Logic ---
-        function checkCustom(type) {
-            if (type === 'speed') {
-                const select = document.getElementById('speedSelect');
-                const customInput = document.getElementById('speedCustom');
-                if (select.value === 'custom') {
-                    customInput.style.display = 'block';
-                    customInput.focus();
-                    customInput.value = ''; // Clear for input
-                } else {
-                    customInput.style.display = 'none';
-                    customInput.value = select.value; // Sync value
-                }
-            }
-        }
-
         // --- Dark Mode ---
         function toggleTheme() {
             const body = document.body;
@@ -312,7 +289,6 @@
                 format: document.getElementById('formatSelect').value,
                 voice: document.getElementById('voiceSelect').value,
                 speed: document.getElementById('speedSelect').value,
-                speedCustom: document.getElementById('speedCustom').value,
                 pitch: document.getElementById('pitchSelect').value,
                 volume: document.getElementById('volumeSelect').value,
                 pause: document.getElementById('pauseSelect').value
@@ -321,42 +297,23 @@
             alert("Settings Saved!");
         }
 
+        // Load Settings on Start (Fix for Blank Issue)
         window.onload = function() {
             const savedText = localStorage.getItem('lastText');
             if (savedText) textInput.value = savedText;
 
             const savedSettings = JSON.parse(localStorage.getItem('favSettings'));
-            if (savedSettings) {
+            
+            // Only apply if savedSettings is valid and has data
+            if (savedSettings && savedSettings.speed) {
                 document.getElementById('formatSelect').value = savedSettings.format;
                 document.getElementById('voiceSelect').value = savedSettings.voice;
-                
-                // Load Custom Speed Logic
-                const speedSel = document.getElementById('speedSelect');
-                const speedCust = document.getElementById('speedCustom');
-                
-                // Check if saved speed exists in dropdown options
-                let speedOptionExists = false;
-                for(let i=0; i<speedSel.options.length; i++){
-                    if(speedSel.options[i].value === savedSettings.speedCustom) {
-                        speedOptionExists = true;
-                        break;
-                    }
-                }
-
-                if (speedOptionExists) {
-                    speedSel.value = savedSettings.speedCustom;
-                    speedCust.style.display = 'none';
-                    speedCust.value = savedSettings.speedCustom;
-                } else {
-                    speedSel.value = 'custom';
-                    speedCust.style.display = 'block';
-                    speedCust.value = savedSettings.speedCustom;
-                }
-
+                document.getElementById('speedSelect').value = savedSettings.speed;
                 document.getElementById('pitchSelect').value = savedSettings.pitch;
                 document.getElementById('volumeSelect').value = savedSettings.volume;
                 document.getElementById('pauseSelect').value = savedSettings.pause;
             }
+            // If no settings saved, HTML 'selected' defaults will be used automatically.
         };
 
         // --- Submit ---
