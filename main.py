@@ -5,8 +5,12 @@ from flask import Flask, request, send_file, render_template
 
 app = Flask(__name__, template_folder='.')
 
-# Default Voice (Thiha - Male)
-VOICE = "my-MM-ThihaNeural"
+# အသံများ သတ်မှတ်ခြင်း
+VOICES = {
+    "male": "my-MM-ThihaNeural",
+    "female": "my-MM-ThiriNeural"
+}
+
 OUTPUT_FILE = "voice.mp3"
 
 @app.route('/')
@@ -16,17 +20,16 @@ def home():
 @app.route('/generate', methods=['POST'])
 def generate():
     text = request.form.get('text')
-    
-    # UI မှ တန်ဖိုးများကို ယူခြင်း
+    voice_key = request.form.get('voice', 'male') # Default male
     speed = request.form.get('speed', '+0%')
-    volume = request.form.get('volume', '+0%')
     pitch = request.form.get('pitch', '+0Hz')
+    volume = request.form.get('volume', '+0%')
     
-    # Console မှာ စစ်ကြည့်ရန် (Debug)
-    print(f"Generating: {text[:20]}... | Speed: {speed} | Pitch: {pitch}")
+    # Select Voice ID
+    selected_voice = VOICES.get(voice_key, VOICES["male"])
 
     async def get_voice():
-        communicate = edge_tts.Communicate(text, VOICE, rate=speed, volume=volume, pitch=pitch)
+        communicate = edge_tts.Communicate(text, selected_voice, rate=speed, pitch=pitch, volume=volume)
         await communicate.save(OUTPUT_FILE)
     
     try:
