@@ -3,56 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Myanmar TTS Bot Status</title>
+    <title>Myanmar TTS Web</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
-            display: flex;
-            justify_content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .card {
-            background: white;
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
-        }
-        .status-dot {
-            height: 15px;
-            width: 15px;
-            background-color: #2ecc71; /* Green for success */
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 10px;
-            box-shadow: 0 0 10px #2ecc71;
-        }
-        h1 { color: #333; margin-bottom: 10px; }
-        p { color: #666; line-height: 1.6; }
-        .btn {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #0088cc; /* Telegram Blue */
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-        }
-        .btn:hover { background-color: #0077b5; }
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f4f9; margin: 0; }
+        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
+        textarea { width: 100%; height: 100px; padding: 10px; border-radius: 5px; border: 1px solid #ccc; margin-bottom: 20px; font-size: 16px; box-sizing: border-box;}
+        button { background-color: #007bff; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; width: 100%; }
+        button:hover { background-color: #0056b3; }
+        audio { margin-top: 20px; width: 100%; display: none; }
+        .loading { display: none; color: #666; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1><span class="status-dot"></span>Bot Online</h1>
-        <p>Myanmar Recap TTS Bot သည် Render Server ပေါ်တွင် အလုပ်လုပ်နေပါသည်။</p>
-        <p>အသံဖိုင်ထုတ်ရန် Telegram တွင် စာပို့ပါ။</p>
-        <a href="https://t.me/" class="btn">Open Telegram</a>
+    <div class="container">
+        <h2>Myanmar Recap TTS</h2>
+        <form id="ttsForm">
+            <textarea name="text" placeholder="စာသား ရိုက်ထည့်ပါ..." required></textarea>
+            <button type="submit">အသံပြောင်းမည်</button>
+        </form>
+        <p class="loading" id="loading">အသံဖိုင် ထုတ်လုပ်နေပါသည်... ခဏစောင့်ပါ...</p>
+        <audio id="audioPlayer" controls></audio>
     </div>
+
+    <script>
+        document.getElementById('ttsForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const text = document.querySelector('textarea').value;
+            const loading = document.getElementById('loading');
+            const player = document.getElementById('audioPlayer');
+            
+            loading.style.display = 'block';
+            player.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('text', text);
+
+            const response = await fetch('/generate', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                player.src = url;
+                player.style.display = 'block';
+                player.play();
+            } else {
+                alert("Error generating voice");
+            }
+            loading.style.display = 'none';
+        };
+    </script>
 </body>
 </html>
