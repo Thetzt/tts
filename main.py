@@ -23,44 +23,43 @@ def generate():
         text = request.form.get('text')
         voice_key = request.form.get('voice', 'male')
         
-        # UI မှ တန်ဖိုးများကို ရယူခြင်း
+        # UI မှ ဂဏန်းများကို ယူခြင်း
         raw_speed = float(request.form.get('speed', 1.0))
-        raw_pitch = request.form.get('pitch', '+0Hz')
+        raw_pitch = int(request.form.get('pitch', 0))
         raw_volume = int(request.form.get('volume', 100))
-        pause_ms = request.form.get('pause', '300') # Default 300 from backend fallback
-
-        # 1. Speed Calculation (e.g. 1.0 -> +0%, 1.2 -> +20%)
+        
+        # Native Parameter Conversion (SSML မသုံးတော့ပါ)
+        # 1. Speed (Example: 1.15 -> +15%)
         speed_pct = f"{int((raw_speed - 1) * 100):+d}%"
         
-        # 2. Volume Calculation (e.g. 100 -> +0%)
+        # 2. Pitch (Example: 5 -> +5Hz)
+        pitch_str = f"{raw_pitch:+d}Hz"
+
+        # 3. Volume (Example: 100 -> +0%, 50 -> -50%)
         vol_pct = f"{raw_volume - 100:+d}%"
 
-        # 3. Pause Handling (SSML break)
-        break_tag = f' <break time="{pause_ms}ms"/> '
-        formatted_text = text.replace('\n', break_tag)
-
-        # 4. Construct SSML
+        # 4. Voice ID
         voice_id = VOICES.get(voice_key, VOICES["male"])
-        
-        ssml_text = f"""
-        <speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='my-MM'>
-            <voice name='{voice_id}'>
-                <prosody rate='{speed_pct}' pitch='{raw_pitch}' volume='{vol_pct}'>
-                    {formatted_text}
-                </prosody>
-            </voice>
-        </speak>
-        """
+
+        # Pause Handling: SSML မသုံးဘဲ ပုဒ်ဖြတ်ပုဒ်ရပ် ထည့်ခြင်း
+        # စာကြောင်းကျော်ရင် ပုဒ်မ(။) ထည့်ပေးလိုက်ရင် AI က အလိုလို ခဏရပ်ပါမယ်
+        final_text = text.replace('\n', ' ။ ')
 
         async def get_voice():
-            communicate = edge_tts.Communicate(ssml_text, voice_id)
+            # Native Arguments သုံးထားလို့ Code ဖတ်တဲ့ ပြဿနာ ကင်းရှင်းသွားပါပြီ
+            communicate = edge_tts.Communicate(
+                final_text, 
+                voice_id, 
+                rate=speed_pct, 
+                pitch=pitch_str, 
+                volume=vol_pct
+            )
             await communicate.save(OUTPUT_FILE)
         
         asyncio.run(get_voice())
         return send_file(OUTPUT_FILE, as_attachment=False)
 
     except Exception as e:
-        # Error တက်ရင် ဘာကြောင့်လဲ သိရအောင် log ထုတ်ပေးမယ်
         print(f"Error generating voice: {e}")
         return str(e), 500
 
