@@ -5,7 +5,6 @@ from flask import Flask, request, send_file, render_template
 
 app = Flask(__name__, template_folder='.')
 
-# Voice Mapping
 VOICES = {
     "male": "my-MM-ThihaNeural",
     "female": "my-MM-ThiriNeural"
@@ -22,31 +21,23 @@ def generate():
     try:
         text = request.form.get('text')
         voice_key = request.form.get('voice', 'male')
+        file_format = request.form.get('format', 'mp3') # UI မှ Format ကို လှမ်းယူမည်
         
-        # UI မှ ဂဏန်းများကို ယူခြင်း
+        # Parameters
         raw_speed = float(request.form.get('speed', 1.0))
         raw_pitch = int(request.form.get('pitch', 0))
         raw_volume = int(request.form.get('volume', 100))
         
-        # Native Parameter Conversion (SSML မသုံးတော့ပါ)
-        # 1. Speed (Example: 1.15 -> +15%)
+        # Conversions
         speed_pct = f"{int((raw_speed - 1) * 100):+d}%"
-        
-        # 2. Pitch (Example: 5 -> +5Hz)
         pitch_str = f"{raw_pitch:+d}Hz"
-
-        # 3. Volume (Example: 100 -> +0%, 50 -> -50%)
         vol_pct = f"{raw_volume - 100:+d}%"
-
-        # 4. Voice ID
         voice_id = VOICES.get(voice_key, VOICES["male"])
 
-        # Pause Handling: SSML မသုံးဘဲ ပုဒ်ဖြတ်ပုဒ်ရပ် ထည့်ခြင်း
-        # စာကြောင်းကျော်ရင် ပုဒ်မ(။) ထည့်ပေးလိုက်ရင် AI က အလိုလို ခဏရပ်ပါမယ်
+        # Pause Handling
         final_text = text.replace('\n', ' ။ ')
 
         async def get_voice():
-            # Native Arguments သုံးထားလို့ Code ဖတ်တဲ့ ပြဿနာ ကင်းရှင်းသွားပါပြီ
             communicate = edge_tts.Communicate(
                 final_text, 
                 voice_id, 
@@ -57,10 +48,15 @@ def generate():
             await communicate.save(OUTPUT_FILE)
         
         asyncio.run(get_voice())
-        return send_file(OUTPUT_FILE, as_attachment=False)
+
+        # Browser ကို ဇဝေဇဝါမဖြစ်အောင် MimeType ပြောင်းပေးခြင်း
+        # WAV ရွေးရင် WAV header နဲ့ပို့မယ် (ဒါမှ .mp3 ထပ်မတိုးမှာ)
+        mime_type = 'audio/wav' if file_format == 'wav' else 'audio/mpeg'
+
+        return send_file(OUTPUT_FILE, mimetype=mime_type, as_attachment=False)
 
     except Exception as e:
-        print(f"Error generating voice: {e}")
+        print(f"Error: {e}")
         return str(e), 500
 
 if __name__ == '__main__':
