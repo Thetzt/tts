@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Myanmar TTS Maker</title>
+    <title>TTS Maker UI Copy</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
@@ -17,172 +17,244 @@
 
         .container {
             background-color: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            width: 100%;
-            max-width: 500px;
-            border: 1px solid #eee;
-        }
-
-        h2 { text-align: center; color: #333; margin-top: 0; }
-
-        /* Text Area Style (New) */
-        .text-area-wrapper { margin-bottom: 20px; }
-        textarea {
-            width: 100%;
-            height: 120px;
-            padding: 15px;
-            border: 1px solid #ccc;
+            padding: 20px;
             border-radius: 8px;
-            font-size: 16px;
-            font-family: inherit;
-            resize: vertical;
-            box-sizing: border-box; /* Important for padding */
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 450px;
+            border: 1px solid #ddd;
         }
-        textarea:focus { outline: none; border-color: #007bff; }
 
-        .form-group { margin-bottom: 15px; }
+        .form-group {
+            margin-bottom: 20px;
+        }
 
         label {
             display: flex;
             align-items: center;
             font-weight: 600;
             margin-bottom: 8px;
-            color: #444;
+            color: #333;
             font-size: 14px;
         }
 
-        label i { margin-right: 10px; font-size: 16px; width: 20px; text-align: center; }
+        label i {
+            margin-right: 8px;
+            font-size: 16px;
+        }
 
         /* Colors for Icons */
-        .icon-text { color: #6f42c1; }
+        .icon-text { color: #6f42c1; } /* Added for Text Area */
+        .icon-quality { color: #555; }
         .icon-speed { color: #007bff; }
         .icon-volume { color: #dc3545; }
-        .icon-pitch { color: #fd7e14; }
+        .icon-pitch { color: #6c757d; }
+        .icon-pause { color: #17a2b8; }
 
-        select {
+        select, textarea {
             width: 100%;
             padding: 12px;
-            border: 1px solid #ddd;
+            border: 1px solid #ccc;
             border-radius: 6px;
             font-size: 14px;
-            background-color: #f9f9f9;
-            color: #333;
-            outline: none;
-            cursor: pointer;
+            background-color: white;
+            color: #444;
+            box-sizing: border-box; /* Ensures padding doesn't break layout */
         }
-        select:focus { border-color: #007bff; background-color: #fff; }
 
-        /* Button Style */
-        .btn-generate {
-            width: 100%;
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 16px;
+        }
+
+        textarea {
+            resize: vertical;
+            height: 100px;
+            font-family: inherit;
+        }
+
+        select:focus, textarea:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        /* Top Format Box Style */
+        .format-selector {
+            border: 1px solid #ccc;
+            border-radius: 6px;
             padding: 15px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .radio-circle {
+            width: 16px;
+            height: 16px;
+            border: 4px solid #f0ad4e;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+
+        .format-icon {
+            font-size: 24px;
+            color: #555;
+            margin-right: 10px;
+        }
+        
+        .format-text {
+            color: #666;
+            font-weight: 500;
+        }
+
+        /* Submit Button Style */
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
             background-color: #007bff;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
             font-size: 16px;
-            font-weight: bold;
+            font-weight: 600;
             cursor: pointer;
-            transition: background 0.3s;
-            margin-top: 10px;
+            transition: background 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
         }
-        .btn-generate:hover { background-color: #0056b3; }
-        .btn-generate:disabled { background-color: #ccc; cursor: not-allowed; }
+        .btn-submit:hover {
+            background-color: #0056b3;
+        }
+        .btn-submit:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
 
-        /* Audio Player Style */
-        .audio-player-wrapper {
-            margin-top: 25px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border: 1px solid #e9ecef;
-            display: none; /* Initially hidden */
+        /* Audio Player */
+        .audio-wrapper {
+            margin-top: 20px;
+            display: none;
             text-align: center;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
         }
-        audio { width: 100%; margin-top: 10px; }
-        .download-link {
-            display: inline-block;
-            margin-top: 10px;
-            color: #007bff;
-            text-decoration: none;
-            font-size: 14px;
-        }
+        audio { width: 100%; margin-top: 5px; }
 
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>Myanmar Recap TTS</h2>
         
         <form id="ttsForm">
-            <div class="text-area-wrapper">
-                <label><i class="fas fa-paragraph icon-text"></i> စာသား ရိုက်ထည့်ပါ</label>
-                <textarea name="text" placeholder="ဒီနေရာမှာ Recap စာသားတွေကို ရိုက်ထည့်ပါ..." required></textarea>
+            <div class="form-group">
+                <label>
+                    <i class="fas fa-paragraph icon-text"></i>
+                    Enter Text
+                </label>
+                <textarea name="text" placeholder="ဒီနေရာမှာ စာသားရိုက်ထည့်ပါ..." required></textarea>
+            </div>
+
+            <div class="format-selector">
+                <div class="radio-circle"></div>
+                <i class="fas fa-file-audio format-icon" style="color:#8bc34a"></i>
+                <span class="format-text">wav / mp3</span>
             </div>
 
             <div class="form-group">
-                <label><i class="fas fa-tachometer-alt icon-speed"></i> အမြန်နှုန်း (Speed)</label>
+                <label>
+                    <i class="fas fa-clapperboard icon-quality"></i> 
+                    MP3 Audio Quality
+                </label>
+                <select name="quality">
+                    <option value="standard">Standard Quality (small size, fast synthesis)</option>
+                    <option value="high">High Quality</option>
+                    <option value="low">Low Quality</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <i class="fas fa-head-side-mask icon-speed"></i>
+                    Voice Speed
+                </label>
                 <select name="speed">
-                    <option value="+0%">Normal (1.0x)</option>
-                    <option value="+10%">Recap Style (1.1x)</option>
-                    <option value="+15%" selected>Recap Fast (1.15x) - Recommended</option>
-                    <option value="+25%">Very Fast (1.25x)</option>
-                    <option value="-10%">Slow (0.9x)</option>
+                    <option value="+0%">1.0x (Default)</option>
+                    <option value="+10%">1.1x (Recap Style)</option>
+                    <option value="+20%">1.2x (Fast)</option>
+                    <option value="+25%">1.25x (Faster)</option>
+                    <option value="+50%">1.5x (Very Fast)</option>
+                    <option value="-20%">0.8x (Slow)</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label><i class="fas fa-volume-up icon-volume"></i> အသံအတိုးအကျယ် (Volume)</label>
+                <label>
+                    <i class="fas fa-bullhorn icon-volume"></i>
+                    Voice Volume
+                </label>
                 <select name="volume">
-                    <option value="+0%">Default</option>
-                    <option value="+20%">Loud (+20%)</option>
-                    <option value="+50%">Very Loud (+50%)</option>
+                    <option value="+0%">100% (Default)</option>
+                    <option value="-20%">80%</option>
+                    <option value="+20%">120%</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label><i class="fas fa-sliders-h icon-pitch"></i> အသံအနိမ့်အမြင့် (Pitch)</label>
+                <label>
+                    <i class="fas fa-sliders-h icon-pitch"></i>
+                    Pitch Adjustment
+                </label>
                 <select name="pitch">
-                    <option value="+0Hz">Default</option>
-                    <option value="+5Hz">High Pitch (Little bit)</option>
-                    <option value="-5Hz">Low Pitch (Deep Voice)</option>
+                    <option value="+0Hz">Default (normal pitch)</option>
+                    <option value="+10Hz">High Pitch</option>
+                    <option value="-10Hz">Low Pitch</option>
                 </select>
             </div>
 
-            <button type="submit" class="btn-generate" id="submitBtn">
-                <i class="fas fa-magic"></i> အသံပြောင်းမည်
+            <div class="form-group">
+                <label>
+                    <i class="fas fa-clock icon-pause"></i>
+                    Adjust pause time
+                </label>
+                <select name="pause">
+                    <option value="200">200ms</option> 
+                    <option value="300" selected>Default (300ms)</option>
+                    <option value="500">500ms</option>
+                    <option value="1000">1000ms (1s)</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-submit" id="generateBtn">
+                <i class="fas fa-wand-magic-sparkles"></i> Convert to Speech
             </button>
         </form>
 
-        <div class="audio-player-wrapper" id="audioSection">
-            <label style="justify-content: center;">✅ အသံဖိုင် ရပါပြီ</label>
+        <div class="audio-wrapper" id="audioSection">
+            <div style="margin-bottom: 5px; font-weight: 500; color: #28a745;">✅ Success!</div>
             <audio id="audioPlayer" controls></audio>
-            <br>
-            <a id="downloadLink" href="#" download="recap_voice.mp3" class="download-link">
-                <i class="fas fa-download"></i> Download MP3
-            </a>
         </div>
+
     </div>
 
     <script>
         document.getElementById('ttsForm').onsubmit = async function(e) {
             e.preventDefault();
             
-            const submitBtn = document.getElementById('submitBtn');
+            const btn = document.getElementById('generateBtn');
             const audioSection = document.getElementById('audioSection');
             const player = document.getElementById('audioPlayer');
-            const downloadLink = document.getElementById('downloadLink');
 
             // Loading State
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> လုပ်ဆောင်နေသည်...';
-            submitBtn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Converting...';
+            btn.disabled = true;
             audioSection.style.display = 'none';
 
             const formData = new FormData(this);
@@ -196,23 +268,20 @@
                 if (response.ok) {
                     const blob = await response.blob();
                     const url = URL.createObjectURL(blob);
-                    
                     player.src = url;
-                    downloadLink.href = url;
-                    
                     audioSection.style.display = 'block';
                     player.play();
                 } else {
-                    alert("Error: အသံထုတ်မရပါ။ ပြန်စမ်းကြည့်ပါ။");
+                    alert("Error generating audio");
                 }
-            } catch (error) {
-                console.error(error);
-                alert("Connection Error!");
+            } catch (err) {
+                console.error(err);
+                alert("Connection failed");
             }
 
             // Reset Button
-            submitBtn.innerHTML = '<i class="fas fa-magic"></i> အသံပြောင်းမည်';
-            submitBtn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> Convert to Speech';
+            btn.disabled = false;
         };
     </script>
 
