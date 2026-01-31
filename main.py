@@ -1,61 +1,34 @@
 import os
 import asyncio
 import edge_tts
-from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
-from flask import Flask, send_file # send_file ကို အသစ်ထပ်ထည့်ထားသည်
-import threading
+from flask import Flask, request, send_file, render_template
 
-# --- 1. Edge TTS Config ---
+# Template တွေကို လက်ရှိ Folder ထဲမှာပဲ ရှာခိုင်းတာပါ
+app = Flask(__name__, template_folder='.')
+
 VOICE = "my-MM-ThihaNeural"
 OUTPUT_FILE = "voice.mp3"
 
-async def generate_voice(text):
-    communicate = edge_tts.Communicate(text, VOICE, rate="+15%") # Recap အတွက် +15%
-    await communicate.save(OUTPUT_FILE)
-    return OUTPUT_FILE
-
-# --- 2. Telegram Bot ---
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("မင်္ဂလာပါ! Recap စာသားကို ပို့လိုက်ရင် အသံဖိုင် လုပ်ပေးပါမယ်။")
-
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_text = update.message.text
-    status_msg = await update.message.reply_text("အသံဖိုင် လုပ်နေပါပြီ... ⏳")
-    
-    try:
-        audio_path = await generate_voice(user_text)
-        await update.message.reply_audio(audio=open(audio_path, 'rb'), title="Recap Voice")
-        await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=status_msg.message_id)
-    except Exception as e:
-        await update.message.reply_text(f"Error: {e}")
-
-# --- 3. Web Server (Updated for HTML) ---
-app = Flask(__name__)
-
+# ပင်မစာမျက်နှာ (index.html) ကို ပြပေးမယ့်နေရာ
 @app.route('/')
 def home():
-    # index.html ကို ပြပေးမည့် အပိုင်း
-    try:
-        return send_file('index.html')
-    except Exception as e:
-        return "Bot is running! (index.html not found)"
+    return render_template('index.html')
 
-def run_flask():
+# Generate ခလုတ်နှိပ်လိုက်ရင် အလုပ်လုပ်မယ့်နေရာ
+@app.route('/generate', methods=['POST'])
+def generate():
+    text = request.form['text']
+    
+    # Python Code နဲ့ အသံဖိုင်ထုတ်ခြင်း
+    async def get_voice():
+        communicate = edge_tts.Communicate(text, VOICE, rate="+10%")
+        await communicate.save(OUTPUT_FILE)
+    
+    asyncio.run(get_voice())
+    
+    # ရလာတဲ့ အသံဖိုင်ကို ပြန်ပို့ပေးခြင်း
+    return send_file(OUTPUT_FILE, as_attachment=False)
+
+if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
-
-# --- 4. Main Execution ---
-if __name__ == "__main__":
-    threading.Thread(target=run_flask).start()
-    
-    TOKEN = os.environ.get("TELEGRAM_TOKEN")
-    if not TOKEN:
-        print("Error: TELEGRAM_TOKEN မရှိပါ။")
-    else:
-        application = Application.builder().token(TOKEN).build()
-        application.add_handler(CommandHandler("start", start))
-        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-        
-        print("Bot စတင်နေပါပြီ...")
-        application.run_polling()
