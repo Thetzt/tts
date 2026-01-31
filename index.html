@@ -85,7 +85,6 @@
         }
         audio { width: 100%; margin-top: 10px; }
         
-        /* Download Button Styling */
         .btn-download {
             display: inline-block;
             margin-top: 10px;
@@ -183,7 +182,7 @@
             <div class="settings-grid">
                 <div class="form-group">
                     <label>File Format</label>
-                    <select id="formatSelect">
+                    <select id="formatSelect" name="format">
                         <option value="mp3" selected>MP3</option>
                         <option value="wav">WAV</option>
                     </select>
@@ -278,12 +277,23 @@
             document.getElementById('themeIcon').className = 'fas fa-sun';
         }
 
-        // --- 2. Auto Save & Settings ---
+        // --- 2. Auto Save & Paste Scroll Logic ---
         const textInput = document.getElementById('textInput');
+        
         textInput.addEventListener('input', () => {
             localStorage.setItem('lastText', textInput.value);
         });
 
+        // *** New Feature: Scroll to top on Paste ***
+        textInput.addEventListener('paste', function() {
+            // Wait a few ms for the text to be inserted
+            setTimeout(() => {
+                this.scrollTop = 0;           // Scroll to top visual
+                this.setSelectionRange(0, 0); // Move cursor to start
+            }, 5);
+        });
+
+        // --- 3. Settings Logic ---
         function saveSettings() {
             const settings = {
                 format: document.getElementById('formatSelect').value,
@@ -300,6 +310,7 @@
         window.onload = function() {
             const savedText = localStorage.getItem('lastText');
             if (savedText) textInput.value = savedText;
+            
             const savedSettings = JSON.parse(localStorage.getItem('favSettings'));
             if (savedSettings && savedSettings.speed) {
                 document.getElementById('formatSelect').value = savedSettings.format;
@@ -311,7 +322,7 @@
             }
         };
 
-        // --- 3. Filename Generation Helper ---
+        // --- 4. Filename Generator ---
         function getFormattedDate() {
             const now = new Date();
             const year = now.getFullYear();
@@ -320,10 +331,10 @@
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const seconds = String(now.getSeconds()).padStart(2, '0');
-            return `${year}${month}${day}_${hours}${minutes}${seconds}`; // YYYYMMDD_HHMMSS
+            return `${year}${month}${day}_${hours}${minutes}${seconds}`;
         }
 
-        // --- 4. Submit & Generate ---
+        // --- 5. Submit ---
         document.getElementById('ttsForm').onsubmit = async function(e) {
             e.preventDefault();
             
@@ -331,7 +342,7 @@
             const audioDiv = document.getElementById('audioOutput');
             const player = document.getElementById('audioPlayer');
             const downloadLink = document.getElementById('downloadLink');
-            const format = document.getElementById('formatSelect').value; // mp3 or wav
+            const format = document.getElementById('formatSelect').value;
 
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
             btn.disabled = true;
@@ -347,9 +358,8 @@
                     
                     player.src = url;
                     
-                    // --- Dynamic Filename Logic ---
+                    // Dynamic Filename
                     const timestamp = getFormattedDate();
-                    // Name: ttsmm_20260201_143000.wav (or mp3)
                     const dynamicName = `ttsmm_${timestamp}.${format}`;
                     
                     downloadLink.href = url;
