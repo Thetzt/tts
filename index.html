@@ -85,17 +85,20 @@
         }
         audio { width: 100%; margin-top: 10px; }
         
+        /* Download Button Styling */
         .btn-download {
             display: inline-block;
             margin-top: 10px;
-            padding: 8px 15px;
+            padding: 10px 20px;
             background-color: #28a745;
             color: white;
             text-decoration: none;
             border-radius: 5px;
             font-size: 14px;
             font-weight: bold;
+            cursor: pointer;
         }
+        .btn-download:hover { background-color: #218838; }
 
         .settings-grid {
             display: grid;
@@ -165,7 +168,7 @@
             <div class="audio-section" id="audioOutput">
                 <audio id="audioPlayer" controls></audio>
                 <br>
-                <a id="downloadLink" href="#" download="voice.mp3" class="btn-download">
+                <a id="downloadLink" href="#" class="btn-download">
                     <i class="fas fa-download"></i> Download Audio
                 </a>
             </div>
@@ -181,7 +184,7 @@
                 <div class="form-group">
                     <label>File Format</label>
                     <select id="formatSelect">
-                        <option value="mp3">MP3</option>
+                        <option value="mp3" selected>MP3</option>
                         <option value="wav">WAV</option>
                     </select>
                 </div>
@@ -260,26 +263,23 @@
     </div>
 
     <script>
-        // --- Dark Mode ---
+        // --- 1. Dark Mode ---
         function toggleTheme() {
             const body = document.body;
             const icon = document.getElementById('themeIcon');
             const isDark = body.getAttribute('data-theme') === 'dark';
             const newTheme = isDark ? 'light' : 'dark';
-            
             body.setAttribute('data-theme', newTheme);
             icon.className = isDark ? 'fas fa-moon' : 'fas fa-sun';
             localStorage.setItem('theme', newTheme);
         }
-
         if (localStorage.getItem('theme') === 'dark') {
             document.body.setAttribute('data-theme', 'dark');
             document.getElementById('themeIcon').className = 'fas fa-sun';
         }
 
-        // --- Auto Save & Settings ---
+        // --- 2. Auto Save & Settings ---
         const textInput = document.getElementById('textInput');
-        
         textInput.addEventListener('input', () => {
             localStorage.setItem('lastText', textInput.value);
         });
@@ -297,14 +297,10 @@
             alert("Settings Saved!");
         }
 
-        // Load Settings (Fixed Blank Issue)
         window.onload = function() {
             const savedText = localStorage.getItem('lastText');
             if (savedText) textInput.value = savedText;
-
             const savedSettings = JSON.parse(localStorage.getItem('favSettings'));
-            
-            // Only overwrite defaults if settings were actually saved
             if (savedSettings && savedSettings.speed) {
                 document.getElementById('formatSelect').value = savedSettings.format;
                 document.getElementById('voiceSelect').value = savedSettings.voice;
@@ -315,7 +311,19 @@
             }
         };
 
-        // --- Submit ---
+        // --- 3. Filename Generation Helper ---
+        function getFormattedDate() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            return `${year}${month}${day}_${hours}${minutes}${seconds}`; // YYYYMMDD_HHMMSS
+        }
+
+        // --- 4. Submit & Generate ---
         document.getElementById('ttsForm').onsubmit = async function(e) {
             e.preventDefault();
             
@@ -323,7 +331,7 @@
             const audioDiv = document.getElementById('audioOutput');
             const player = document.getElementById('audioPlayer');
             const downloadLink = document.getElementById('downloadLink');
-            const format = document.getElementById('formatSelect').value;
+            const format = document.getElementById('formatSelect').value; // mp3 or wav
 
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
             btn.disabled = true;
@@ -338,8 +346,14 @@
                     const url = URL.createObjectURL(blob);
                     
                     player.src = url;
+                    
+                    // --- Dynamic Filename Logic ---
+                    const timestamp = getFormattedDate();
+                    // Name: ttsmm_20260201_143000.wav (or mp3)
+                    const dynamicName = `ttsmm_${timestamp}.${format}`;
+                    
                     downloadLink.href = url;
-                    downloadLink.download = `voice.${format}`; 
+                    downloadLink.download = dynamicName; 
                     
                     audioDiv.style.display = 'block';
                     player.play();
