@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Myanmar TTS Pro</title>
+    <title>Myanmar TTS Maker</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -212,16 +212,16 @@
                 <div class="form-group">
                     <label>Pitch</label>
                     <select name="pitch" id="pitchSelect">
-                        <option value="-25Hz">-25</option>
-                        <option value="-15Hz">-15</option>
-                        <option value="-10Hz">-10</option>
-                        <option value="-5Hz">-5</option>
-                        <option value="+0Hz" selected>0</option>
-                        <option value="+5Hz">5</option>
-                        <option value="+10Hz">10</option>
-                        <option value="+15Hz">15</option>
-                        <option value="+25Hz">25</option>
-                        <option value="+50Hz">50</option>
+                        <option value="-25">-25</option>
+                        <option value="-15">-15</option>
+                        <option value="-10">-10</option>
+                        <option value="-5">-5</option>
+                        <option value="0" selected>0</option>
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
                     </select>
                 </div>
 
@@ -297,14 +297,14 @@
             alert("Settings Saved!");
         }
 
-        // Load Settings on Start (Fix for Blank Issue)
+        // Load Settings (Fixed Blank Issue)
         window.onload = function() {
             const savedText = localStorage.getItem('lastText');
             if (savedText) textInput.value = savedText;
 
             const savedSettings = JSON.parse(localStorage.getItem('favSettings'));
             
-            // Only apply if savedSettings is valid and has data
+            // Only overwrite defaults if settings were actually saved
             if (savedSettings && savedSettings.speed) {
                 document.getElementById('formatSelect').value = savedSettings.format;
                 document.getElementById('voiceSelect').value = savedSettings.voice;
@@ -313,7 +313,6 @@
                 document.getElementById('volumeSelect').value = savedSettings.volume;
                 document.getElementById('pauseSelect').value = savedSettings.pause;
             }
-            // If no settings saved, HTML 'selected' defaults will be used automatically.
         };
 
         // --- Submit ---
